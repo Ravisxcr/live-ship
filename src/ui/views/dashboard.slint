@@ -56,10 +56,6 @@ export component DashboardView inherits Rectangle {
                 border-radius: 6px;
                 background: new_btn.has_hover ? #0284C7 : #0369A1;
 
-                new_btn := TouchArea {
-                    clicked => { root.create_new(); }
-                }
-
                 HorizontalLayout {
                     alignment: center;
                     spacing: 6px;
@@ -69,7 +65,7 @@ export component DashboardView inherits Rectangle {
                         width: 14px;
                         height: 14px;
                         colorize: #FFFFFF;
-                        vertical-alignment: center;
+                        y: (parent.height - self.height) / 2;
                     }
 
                     Text {
@@ -79,6 +75,11 @@ export component DashboardView inherits Rectangle {
                         color: #FFFFFF;
                         vertical-alignment: center;
                     }
+                }
+
+                new_btn := TouchArea {
+                    mouse-cursor: pointer;
+                    clicked => { root.create_new(); }
                 }
             }
         }
@@ -100,7 +101,7 @@ export component DashboardView inherits Rectangle {
                     width: 36px;
                     height: 36px;
                     colorize: #38BDF8;
-                    horizontal-alignment: center;
+                    x: (parent.width - self.width) / 2;
                 }
 
                 Text {
@@ -121,9 +122,13 @@ export component DashboardView inherits Rectangle {
         }
 
         // Deployment Cards List
-        ScrollView {
+        cards_scroll := ScrollView {
+            vertical-stretch: 1;
+
             VerticalLayout {
+                width: cards_scroll.visible-width;
                 spacing: 12px;
+                alignment: start;
 
                 for card in root.deployments: Rectangle {
                     height: 110px;
@@ -187,13 +192,14 @@ export component DashboardView inherits Rectangle {
                             HorizontalLayout {
                                 spacing: 6px;
                                 alignment: start;
+                                height: 16px;
 
                                 Image {
                                     source: @image-url("../../../assets/icons/folder.svg");
                                     width: 13px;
                                     height: 13px;
                                     colorize: #64748B;
-                                    vertical-alignment: center;
+                                    y: (parent.height - self.height) / 2;
                                 }
 
                                 Text {
@@ -217,13 +223,14 @@ export component DashboardView inherits Rectangle {
                             HorizontalLayout {
                                 spacing: 6px;
                                 alignment: start;
+                                height: 16px;
 
                                 Image {
                                     source: @image-url("../../../assets/icons/terminal.svg");
                                     width: 13px;
                                     height: 13px;
                                     colorize: #64748B;
-                                    vertical-alignment: center;
+                                    y: (parent.height - self.height) / 2;
                                 }
 
                                 Text {
@@ -254,11 +261,7 @@ export component DashboardView inherits Rectangle {
                                 width: 84px;
                                 height: 32px;
                                 border-radius: 5px;
-                                background: start_touch.has_hover ? #059669 : #10B981;
-
-                                start_touch := TouchArea {
-                                    clicked => { root.start_app(card.id); }
-                                }
+                                background: start_touch.pressed ? #047857 : (start_touch.has_hover ? #059669 : #10B981);
 
                                 HorizontalLayout {
                                     alignment: center;
@@ -269,7 +272,7 @@ export component DashboardView inherits Rectangle {
                                         width: 11px;
                                         height: 11px;
                                         colorize: #FFFFFF;
-                                        vertical-alignment: center;
+                                        y: (parent.height - self.height) / 2;
                                     }
 
                                     Text {
@@ -280,17 +283,18 @@ export component DashboardView inherits Rectangle {
                                         vertical-alignment: center;
                                     }
                                 }
+
+                                start_touch := TouchArea {
+                                    mouse-cursor: pointer;
+                                    clicked => { root.start_app(card.id); }
+                                }
                             }
 
                             if card.is_running: Rectangle {
                                 width: 84px;
                                 height: 32px;
                                 border-radius: 5px;
-                                background: stop_touch.has_hover ? #DC2626 : #EF4444;
-
-                                stop_touch := TouchArea {
-                                    clicked => { root.stop_app(card.id); }
-                                }
+                                background: stop_touch.pressed ? #B91C1C : (stop_touch.has_hover ? #DC2626 : #EF4444);
 
                                 HorizontalLayout {
                                     alignment: center;
@@ -301,7 +305,7 @@ export component DashboardView inherits Rectangle {
                                         width: 11px;
                                         height: 11px;
                                         colorize: #FFFFFF;
-                                        vertical-alignment: center;
+                                        y: (parent.height - self.height) / 2;
                                     }
 
                                     Text {
@@ -312,17 +316,18 @@ export component DashboardView inherits Rectangle {
                                         vertical-alignment: center;
                                     }
                                 }
+
+                                stop_touch := TouchArea {
+                                    mouse-cursor: pointer;
+                                    clicked => { root.stop_app(card.id); }
+                                }
                             }
 
                             if card.is_running: Rectangle {
-                                width: 86px;
+                                width: 88px;
                                 height: 32px;
                                 border-radius: 5px;
-                                background: restart_touch.has_hover ? #D97706 : #F59E0B;
-
-                                restart_touch := TouchArea {
-                                    clicked => { root.restart_app(card.id); }
-                                }
+                                background: restart_touch.pressed ? #B45309 : (restart_touch.has_hover ? #D97706 : #F59E0B);
 
                                 HorizontalLayout {
                                     alignment: center;
@@ -333,7 +338,7 @@ export component DashboardView inherits Rectangle {
                                         width: 12px;
                                         height: 12px;
                                         colorize: #FFFFFF;
-                                        vertical-alignment: center;
+                                        y: (parent.height - self.height) / 2;
                                     }
 
                                     Text {
@@ -344,19 +349,20 @@ export component DashboardView inherits Rectangle {
                                         vertical-alignment: center;
                                     }
                                 }
+
+                                restart_touch := TouchArea {
+                                    mouse-cursor: pointer;
+                                    clicked => { root.restart_app(card.id); }
+                                }
                             }
 
                             Rectangle {
-                                width: 72px;
+                                width: 74px;
                                 height: 32px;
                                 border-radius: 5px;
-                                background: logs_touch.has_hover ? #334155 : #1E293B;
+                                background: logs_touch.pressed ? #1E293B : (logs_touch.has_hover ? #334155 : #1E293B);
                                 border-width: 1px;
-                                border-color: #334155;
-
-                                logs_touch := TouchArea {
-                                    clicked => { root.view_logs(card.id); }
-                                }
+                                border-color: logs_touch.has_hover ? #475569 : #334155;
 
                                 HorizontalLayout {
                                     alignment: center;
@@ -366,31 +372,32 @@ export component DashboardView inherits Rectangle {
                                         source: @image-url("../../../assets/icons/file-text.svg");
                                         width: 12px;
                                         height: 12px;
-                                        colorize: #94A3B8;
-                                        vertical-alignment: center;
+                                        colorize: logs_touch.has_hover ? #F8FAFC : #94A3B8;
+                                        y: (parent.height - self.height) / 2;
                                     }
 
                                     Text {
                                         text: "Logs";
                                         font-size: 11px;
                                         font-weight: 600;
-                                        color: #94A3B8;
+                                        color: logs_touch.has_hover ? #F8FAFC : #94A3B8;
                                         vertical-alignment: center;
                                     }
+                                }
+
+                                logs_touch := TouchArea {
+                                    mouse-cursor: pointer;
+                                    clicked => { root.view_logs(card.id); }
                                 }
                             }
 
                             Rectangle {
-                                width: 66px;
+                                width: 68px;
                                 height: 32px;
                                 border-radius: 5px;
-                                background: edit_touch.has_hover ? #334155 : #1E293B;
+                                background: edit_touch.pressed ? #1E293B : (edit_touch.has_hover ? #334155 : #1E293B);
                                 border-width: 1px;
-                                border-color: #334155;
-
-                                edit_touch := TouchArea {
-                                    clicked => { root.edit_app(card.id); }
-                                }
+                                border-color: edit_touch.has_hover ? #475569 : #334155;
 
                                 HorizontalLayout {
                                     alignment: center;
@@ -400,17 +407,22 @@ export component DashboardView inherits Rectangle {
                                         source: @image-url("../../../assets/icons/edit.svg");
                                         width: 12px;
                                         height: 12px;
-                                        colorize: #94A3B8;
-                                        vertical-alignment: center;
+                                        colorize: edit_touch.has_hover ? #F8FAFC : #94A3B8;
+                                        y: (parent.height - self.height) / 2;
                                     }
 
                                     Text {
                                         text: "Edit";
                                         font-size: 11px;
                                         font-weight: 600;
-                                        color: #94A3B8;
+                                        color: edit_touch.has_hover ? #F8FAFC : #94A3B8;
                                         vertical-alignment: center;
                                     }
+                                }
+
+                                edit_touch := TouchArea {
+                                    mouse-cursor: pointer;
+                                    clicked => { root.edit_app(card.id); }
                                 }
                             }
                         }

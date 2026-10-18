@@ -1,3 +1,5 @@
+import { ScrollView } from "std-widgets.slint";
+
 export struct SidebarItemData {
     id: string,
     name: string,
@@ -17,196 +19,301 @@ export component Sidebar inherits Rectangle {
     callback select_item(string);
     callback select_dashboard();
 
-    width: collapsed ? 64px : 240px;
-    background: #0F172A; // slate-900
-    border-color: #1E293B; // slate-800
-    border-width: 1px;
+    width: collapsed ? 60px : 240px;
+    clip: true;
+    background: #090D16; // deep dark slate/zinc (shadcn style)
 
-    animate width { duration: 150ms; easing: ease-out; }
+    animate width { duration: 180ms; easing: ease-in-out; }
+
+    // 1px right border divider (shadcn border-r)
+    Rectangle {
+        width: 1px;
+        x: parent.width - 1px;
+        y: 0px;
+        height: 100%;
+        background: #1E293B;
+    }
 
     VerticalLayout {
-        padding: 12px;
-        spacing: 12px;
+        padding: 0px;
+        spacing: 0px;
 
-        // Header: Logo / Title + Collapse button
-        HorizontalLayout {
-            alignment: space-between;
-            height: 36px;
+        // Header: Logo / Title + Collapse button (Height 52px to align with top navbar)
+        Rectangle {
+            height: 52px;
 
-            if !collapsed: HorizontalLayout {
-                spacing: 8px;
-                alignment: start;
-
-                Image {
-                    source: @image-url("../../../assets/icons/bolt.svg");
-                    width: 18px;
-                    height: 18px;
-                    colorize: #38BDF8;
-                    vertical-alignment: center;
-                }
-
-                Text {
-                    text: "LiveShip";
-                    font-size: 16px;
-                    font-weight: 700;
-                    color: #38BDF8; // sky-400
-                    vertical-alignment: center;
-                }
-            }
-
-            if collapsed: HorizontalLayout {
-                alignment: center;
-                Image {
-                    source: @image-url("../../../assets/icons/bolt.svg");
-                    width: 18px;
-                    height: 18px;
-                    colorize: #38BDF8;
-                    vertical-alignment: center;
-                }
-            }
-
+            // Bottom border divider to align with top navbar divider
             Rectangle {
-                width: 32px;
-                height: 32px;
-                border-radius: 6px;
-                background: collapse_touch.has_hover ? #1E293B : transparent;
-
-                collapse_touch := TouchArea {
-                    clicked => { root.toggle_collapse(); }
-                }
-
-                Image {
-                    source: root.collapsed ? @image-url("../../../assets/icons/chevron-right.svg") : @image-url("../../../assets/icons/chevron-left.svg");
-                    width: 14px;
-                    height: 14px;
-                    colorize: #94A3B8;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                }
-            }
-        }
-
-        // Action: New Deployment Button
-        Rectangle {
-            height: 38px;
-            border-radius: 6px;
-            background: btn_touch.pressed ? #0284C7 : (btn_touch.has_hover ? #0369A1 : #0284C7);
-
-            btn_touch := TouchArea {
-                clicked => { root.create_new(); }
+                height: 1px;
+                y: parent.height - 1px;
+                background: #1E293B;
             }
 
             HorizontalLayout {
-                alignment: center;
-                spacing: 6px;
+                padding-left: collapsed ? 0px : 14px;
+                padding-right: collapsed ? 0px : 12px;
+                alignment: collapsed ? center : space-between;
 
-                Image {
-                    source: @image-url("../../../assets/icons/plus.svg");
-                    width: 14px;
-                    height: 14px;
-                    colorize: #FFFFFF;
-                    vertical-alignment: center;
-                }
-
-                if !collapsed: Text {
-                    text: "New Deployment";
-                    font-size: 12px;
-                    font-weight: 600;
-                    color: #FFFFFF;
-                    vertical-alignment: center;
-                }
-            }
-        }
-
-        // Navigation: Dashboard link
-        Rectangle {
-            height: 36px;
-            border-radius: 6px;
-            background: dashboard_active ? #1E293B : (dash_touch.has_hover ? #172033 : transparent);
-
-            dash_touch := TouchArea {
-                clicked => { root.select_dashboard(); }
-            }
-
-            HorizontalLayout {
-                padding-left: 10px;
-                padding-right: 10px;
-                spacing: 10px;
-                alignment: start;
-
-                Image {
-                    source: @image-url("../../../assets/icons/dashboard.svg");
-                    width: 16px;
-                    height: 16px;
-                    colorize: dashboard_active ? #38BDF8 : #94A3B8;
-                    vertical-alignment: center;
-                }
-
-                if !collapsed: Text {
-                    text: "Dashboard";
-                    font-size: 13px;
-                    font-weight: dashboard_active ? 700 : 500;
-                    color: dashboard_active ? #F8FAFC : #94A3B8;
-                    vertical-alignment: center;
-                }
-            }
-        }
-
-        // Section Separator
-        if !collapsed: Rectangle {
-            height: 1px;
-            background: #1E293B;
-        }
-
-        if !collapsed: Text {
-            text: "DEPLOYMENTS";
-            font-size: 10px;
-            font-weight: 700;
-            color: #64748B;
-        }
-
-        // Deployment List
-        VerticalLayout {
-            spacing: 4px;
-
-            for item in root.items: Rectangle {
-                height: 36px;
-                border-radius: 6px;
-                background: (!dashboard_active && active_id == item.id) ? #1E293B : (item_touch.has_hover ? #172033 : transparent);
-
-                item_touch := TouchArea {
-                    clicked => { root.select_item(item.id); }
-                }
-
-                HorizontalLayout {
-                    padding-left: 10px;
-                    padding-right: 10px;
+                if !collapsed: HorizontalLayout {
                     spacing: 8px;
                     alignment: start;
+                    y: (parent.height - self.height) / 2;
 
-                    // Color-coded status indicator dot
-                    Rectangle {
-                        width: 8px;
-                        height: 8px;
-                        border-radius: 4px;
-                        background: item.status_color;
+                    Image {
+                        source: @image-url("../../../assets/icons/bolt.svg");
+                        width: 18px;
+                        height: 18px;
+                        colorize: #38BDF8;
+                        y: (parent.height - self.height) / 2;
+                    }
+
+                    Text {
+                        text: "LiveShip";
+                        font-size: 15px;
+                        font-weight: 700;
+                        color: #38BDF8; // sky-400
+                        vertical-alignment: center;
+                    }
+                }
+
+                Rectangle {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 6px;
+                    background: collapse_touch.pressed ? #334155 : (collapse_touch.has_hover ? #1E293B : transparent);
+                    y: (parent.height - self.height) / 2;
+
+                    Image {
+                        source: root.collapsed ? @image-url("../../../assets/icons/bolt.svg") : @image-url("../../../assets/icons/panel-left.svg");
+                        width: 16px;
+                        height: 16px;
+                        colorize: root.collapsed ? #38BDF8 : (collapse_touch.has_hover ? #F8FAFC : #94A3B8);
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                    }
+
+                    collapse_touch := TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => { root.toggle_collapse(); }
+                    }
+                }
+            }
+        }
+
+        // Inner Navigation Content
+        VerticalLayout {
+            padding-top: 10px;
+            padding-bottom: 12px;
+            padding-left: collapsed ? 10px : 12px;
+            padding-right: collapsed ? 10px : 12px;
+            spacing: 8px;
+            vertical-stretch: 1;
+
+            // Action: New Deployment Button
+            Rectangle {
+                height: 36px;
+                border-radius: 6px;
+                background: btn_touch.pressed ? #0284C7 : (btn_touch.has_hover ? #0369A1 : #0284C7);
+
+                HorizontalLayout {
+                    alignment: center;
+                    spacing: 6px;
+
+                    Image {
+                        source: @image-url("../../../assets/icons/plus.svg");
+                        width: 14px;
+                        height: 14px;
+                        colorize: #FFFFFF;
                         y: (parent.height - self.height) / 2;
                     }
 
                     if !collapsed: Text {
-                        text: item.name;
+                        text: "New Deployment";
                         font-size: 12px;
-                        font-weight: (!dashboard_active && active_id == item.id) ? 700 : 500;
-                        color: (!dashboard_active && active_id == item.id) ? #F8FAFC : #CBD5E1;
+                        font-weight: 600;
+                        color: #FFFFFF;
                         vertical-alignment: center;
-                        overflow: elide;
+                    }
+                }
+
+                btn_touch := TouchArea {
+                    mouse-cursor: pointer;
+                    clicked => { root.create_new(); }
+                }
+            }
+
+            // Navigation: Dashboard link
+            Rectangle {
+                height: 36px;
+                border-radius: 6px;
+                background: dashboard_active ? #1E293B : (dash_touch.has_hover ? #172033 : transparent);
+
+                HorizontalLayout {
+                    padding-left: collapsed ? 0px : 10px;
+                    padding-right: collapsed ? 0px : 10px;
+                    spacing: 10px;
+                    alignment: collapsed ? center : start;
+
+                    Image {
+                        source: @image-url("../../../assets/icons/dashboard.svg");
+                        width: 16px;
+                        height: 16px;
+                        colorize: dashboard_active ? #38BDF8 : (dash_touch.has_hover ? #F8FAFC : #94A3B8);
+                        y: (parent.height - self.height) / 2;
+                    }
+
+                    if !collapsed: Text {
+                        text: "Dashboard";
+                        font-size: 13px;
+                        font-weight: dashboard_active ? 600 : 500;
+                        color: dashboard_active ? #F8FAFC : #94A3B8;
+                        vertical-alignment: center;
+                    }
+                }
+
+                dash_touch := TouchArea {
+                    mouse-cursor: pointer;
+                    clicked => { root.select_dashboard(); }
+                }
+            }
+
+            // Section Separator
+            if !collapsed: Rectangle {
+                height: 1px;
+                background: #1E293B;
+            }
+
+            if !collapsed: HorizontalLayout {
+                padding-left: 4px;
+                padding-top: 2px;
+                Text {
+                    text: "DEPLOYMENTS";
+                    font-size: 10px;
+                    font-weight: 700;
+                    color: #64748B;
+                }
+            }
+
+            // Deployment List with ScrollView
+            items_scroll := ScrollView {
+                vertical-stretch: 1;
+
+                VerticalLayout {
+                    width: items_scroll.visible-width;
+                    spacing: 4px;
+                    alignment: start;
+
+                    for item in root.items: Rectangle {
+                        height: 36px;
+                        border-radius: 6px;
+                        background: (!dashboard_active && active_id == item.id) ? #1E293B : (item_touch.has_hover ? #172033 : transparent);
+
+                        if collapsed: HorizontalLayout {
+                            alignment: center;
+
+                            Rectangle {
+                                width: 28px;
+                                height: 28px;
+                                border-radius: 6px;
+                                background: item.status_color.with_alpha(0.12);
+                                y: (parent.height - self.height) / 2;
+
+                                Rectangle {
+                                    width: 8px;
+                                    height: 8px;
+                                    border-radius: 4px;
+                                    background: item.status_color;
+                                    x: (parent.width - self.width) / 2;
+                                    y: (parent.height - self.height) / 2;
+                                }
+                            }
+                        }
+
+                        if !collapsed: HorizontalLayout {
+                            padding-left: 10px;
+                            padding-right: 10px;
+                            spacing: 8px;
+                            alignment: space-between;
+
+                            HorizontalLayout {
+                                spacing: 8px;
+                                alignment: start;
+                                horizontal-stretch: 1;
+
+                                Rectangle {
+                                    width: 8px;
+                                    height: 8px;
+                                    border-radius: 4px;
+                                    background: item.status_color;
+                                    y: (parent.height - self.height) / 2;
+                                }
+
+                                Text {
+                                    text: item.name;
+                                    font-size: 12px;
+                                    font-weight: (!dashboard_active && active_id == item.id) ? 600 : 500;
+                                    color: (!dashboard_active && active_id == item.id) ? #F8FAFC : #CBD5E1;
+                                    vertical-alignment: center;
+                                    overflow: elide;
+                                }
+                            }
+
+                            Text {
+                                text: item.status_text;
+                                font-size: 10px;
+                                font-weight: 500;
+                                color: item.status_color;
+                                vertical-alignment: center;
+                            }
+                        }
+
+                        item_touch := TouchArea {
+                            mouse-cursor: pointer;
+                            clicked => { root.select_item(item.id); }
+                        }
+                    }
+                }
+            }
+
+            // Footer info
+            if !collapsed: Rectangle {
+                height: 1px;
+                background: #1E293B;
+            }
+
+            if !collapsed: HorizontalLayout {
+                padding-left: 4px;
+                padding-right: 4px;
+                alignment: space-between;
+                height: 18px;
+
+                Text {
+                    text: "LiveShip v0.1.0";
+                    font-size: 10px;
+                    color: #475569;
+                    vertical-alignment: center;
+                }
+
+                HorizontalLayout {
+                    spacing: 4px;
+                    alignment: end;
+
+                    Rectangle {
+                        width: 6px;
+                        height: 6px;
+                        border-radius: 3px;
+                        background: #10B981;
+                        y: (parent.height - self.height) / 2;
+                    }
+
+                    Text {
+                        text: "System Ready";
+                        font-size: 10px;
+                        color: #64748B;
+                        vertical-alignment: center;
                     }
                 }
             }
         }
-
-        // Flexible spacer to push footer down
-        Rectangle {}
     }
 }
-

@@ -48,58 +48,77 @@ export component MainWindow inherits Window {
     callback clear_logs_clicked(string);
     callback app_type_selected(string);
 
-    HorizontalLayout {
-        padding: 0px;
-        spacing: 0px;
+    // Collapsible Sidebar (positioned at left)
+    sidebar := Sidebar {
+        x: 0px;
+        y: 0px;
+        height: root.height;
+        collapsed: root.sidebar_collapsed;
+        items: root.sidebar_items;
+        active_id: root.selected_deployment_id;
+        dashboard_active: root.active_view == 0;
 
-        // Collapsible Sidebar
-        Sidebar {
-            collapsed: root.sidebar_collapsed;
-            items: root.sidebar_items;
-            active_id: root.selected_deployment_id;
-            dashboard_active: root.active_view == 0;
-
-            toggle_collapse => {
-                root.sidebar_collapsed = !root.sidebar_collapsed;
-                root.toggle_sidebar();
-            }
-
-            create_new => {
-                root.open_create_form();
-            }
-
-            select_dashboard => {
-                root.active_view = 0;
-                root.open_dashboard();
-            }
-
-            select_item(id) => {
-                root.select_deployment_item(id);
-            }
+        toggle_collapse => {
+            root.sidebar_collapsed = !root.sidebar_collapsed;
+            root.toggle_sidebar();
         }
 
-        // Main View Area
+        create_new => {
+            root.open_create_form();
+        }
+
+        select_dashboard => {
+            root.active_view = 0;
+            root.open_dashboard();
+        }
+
+        select_item(id) => {
+            root.select_deployment_item(id);
+        }
+    }
+
+    // Main View Area (fills remaining space dynamically without collapsing window)
+    main_area := Rectangle {
+        x: sidebar.width;
+        y: 0px;
+        width: root.width - sidebar.width;
+        height: root.height;
+        clip: true;
+        background: #0B1120;
+
         VerticalLayout {
-            horizontal-stretch: 1;
+            padding: 0px;
+            spacing: 0px;
 
             // Top Header Bar
             Rectangle {
                 height: 52px;
                 background: #0F172A;
 
+                // 1px bottom border divider (shadcn style)
+                Rectangle {
+                    height: 1px;
+                    y: parent.height - 1px;
+                    background: #1E293B;
+                }
+
                 HorizontalLayout {
-                    padding-left: 20px;
+                    padding-left: 16px;
                     padding-right: 20px;
                     alignment: space-between;
 
+                    // Left Header: Sidebar Trigger & View Title (shadcn style)
                     HorizontalLayout {
                         spacing: 12px;
                         alignment: start;
+                        y: (parent.height - self.height) / 2;
+
+                        
 
                         Text {
                             text: root.active_view == 0 ? "Dashboard" : (root.active_view == 1 ? ("Logs: " + root.selected_deployment_name) : "Deployment Configuration");
-                            font-size: 15px;
-                            font-weight: 700;
+                            font-size: 14px;
+                            font-weight: 600;
                             color: #F8FAFC;
                             vertical-alignment: center;
                         }
@@ -136,7 +155,7 @@ export component MainWindow inherits Window {
                                     width: 12px;
                                     height: 12px;
                                     colorize: #94A3B8;
-                                    vertical-alignment: center;
+                                    y: (parent.height - self.height) / 2;
                                 }
 
                                 Text {
@@ -154,6 +173,7 @@ export component MainWindow inherits Window {
 
             // View Content Switcher
             if root.active_view == 0: DashboardView {
+                vertical-stretch: 1;
                 deployments: root.dashboard_cards;
 
                 create_new => { root.open_create_form(); }
@@ -165,12 +185,14 @@ export component MainWindow inherits Window {
             }
 
             if root.active_view == 1: Rectangle {
+                vertical-stretch: 1;
                 background: #0B1120;
 
                 VerticalLayout {
                     padding: 16px;
 
                     LogViewer {
+                        vertical-stretch: 1;
                         logs: root.current_logs;
                         deployment_name: root.selected_deployment_name;
                         is_running: root.selected_is_running;
@@ -183,6 +205,7 @@ export component MainWindow inherits Window {
             }
 
             if root.active_view == 2: DeploymentForm {
+                vertical-stretch: 1;
                 edit_id <=> root.form_id;
                 form_name <=> root.form_name;
                 form_type <=> root.form_type;
@@ -213,4 +236,3 @@ export component MainWindow inherits Window {
         }
     }
 }
-

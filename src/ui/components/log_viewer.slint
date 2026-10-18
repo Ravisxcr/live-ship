@@ -41,7 +41,7 @@ export component LogViewer inherits Rectangle {
                         width: 14px;
                         height: 14px;
                         colorize: #38BDF8;
-                        vertical-alignment: center;
+                        y: (parent.height - self.height) / 2;
                     }
 
                     Text {
@@ -83,7 +83,7 @@ export component LogViewer inherits Rectangle {
                             width: 11px;
                             height: 11px;
                             colorize: #9CA3AF;
-                            vertical-alignment: center;
+                            y: (parent.height - self.height) / 2;
                         }
 
                         Text {
@@ -98,8 +98,11 @@ export component LogViewer inherits Rectangle {
         }
 
         // Terminal Logs Content
-        ScrollView {
+        logs_scroll := ScrollView {
+            vertical-stretch: 1;
+
             VerticalLayout {
+                width: logs_scroll.visible-width;
                 padding: 10px;
                 spacing: 3px;
                 alignment: start;

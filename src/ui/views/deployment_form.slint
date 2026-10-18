@@ -17,8 +17,11 @@ export component DeploymentForm inherits Rectangle {
 
     background: #0B1120; // slate-950
 
-    ScrollView {
+    form_scroll := ScrollView {
+        vertical-stretch: 1;
+
         VerticalLayout {
+            width: form_scroll.visible-width;
             padding: 24px;
             spacing: 20px;
             alignment: start;
@@ -63,7 +66,7 @@ export component DeploymentForm inherits Rectangle {
                             width: 13px;
                             height: 13px;
                             colorize: #FCA5A5;
-                            vertical-alignment: center;
+                            y: (parent.height - self.height) / 2;
                         }
 
                         Text {
@@ -245,8 +248,8 @@ export component DeploymentForm inherits Rectangle {
                         width: 12px;
                         height: 12px;
                         colorize: #FFFFFF;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
                     }
                 }
 

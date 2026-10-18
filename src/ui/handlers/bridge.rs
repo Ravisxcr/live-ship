@@ -40,12 +40,8 @@ impl UiBridge {
 
         // Sidebar toggle callback
         {
-            let w = window.as_weak();
             window.on_toggle_sidebar(move || {
-                if let Some(w) = w.upgrade() {
-                    let cur = w.get_sidebar_collapsed();
-                    w.set_sidebar_collapsed(!cur);
-                }
+                // UI state root.sidebar_collapsed is directly toggled in Slint
             });
         }
 
