@@ -150,8 +150,8 @@ cargo run
 
 When implementing new features, refer to these prioritized items:
 
-1. **Native Directory Picker**:
-   - Integrate `rfd` (Rust File Dialog) to allow browsing for working directories via a native OS dialog.
+1. **Native Directory Picker** (Implemented):
+   - Integrated `rfd` (Rust File Dialog) to allow browsing for working directories via a native OS dialog.
 2. **Health Check & Port Probing**:
    - Automatically extract `PORT` from `.env` or process arguments and probe `http://localhost:<PORT>` with an HTTP HEAD request; display clickable links in the dashboard card.
 3. **Log Search & Export**:

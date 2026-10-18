@@ -1,7 +1,7 @@
 import { Sidebar, SidebarItemData } from "components/sidebar.slint";
 import { LogViewer, LogLineData } from "components/log_viewer.slint";
 import { DashboardView, DeploymentCardData } from "views/dashboard.slint";
-import { DeploymentForm } from "views/deployment_form.slint";
+import { DeploymentDialog } from "views/deployment_form.slint";
 
 export component MainWindow inherits Window {
     title: "LiveShip";
@@ -13,7 +13,8 @@ export component MainWindow inherits Window {
 
     // State properties
     in-out property <bool> sidebar_collapsed: false;
-    in-out property <int> active_view: 0; // 0 = Dashboard, 1 = Logs, 2 = Form
+    in-out property <int> active_view: 0; // 0 = Dashboard, 1 = Logs
+    in-out property <bool> show_deployment_dialog: false;
     in-out property <string> selected_deployment_id: "";
     in-out property <string> selected_deployment_name: "";
     in-out property <bool> selected_is_running: false;
@@ -47,6 +48,7 @@ export component MainWindow inherits Window {
     callback delete_app(string);
     callback clear_logs_clicked(string);
     callback app_type_selected(string);
+    callback browse_work_dir();
 
     // Collapsible Sidebar (positioned at left)
     sidebar := Sidebar {
@@ -113,10 +115,8 @@ export component MainWindow inherits Window {
                         alignment: start;
                         y: (parent.height - self.height) / 2;
 
-                        
-
                         Text {
-                            text: root.active_view == 0 ? "Dashboard" : (root.active_view == 1 ? ("Logs: " + root.selected_deployment_name) : "Deployment Configuration");
+                            text: root.active_view == 0 ? "Dashboard" : ("Logs: " + root.selected_deployment_name);
                             font-size: 14px;
                             font-weight: 600;
                             color: #F8FAFC;
@@ -128,16 +128,17 @@ export component MainWindow inherits Window {
                     HorizontalLayout {
                         spacing: 8px;
                         alignment: end;
-                        y: (parent.height - self.height) / 2;
 
                         if root.active_view != 0: Rectangle {
                             height: 30px;
                             border-radius: 5px;
                             background: dash_pill.has_hover ? #334155 : #1E293B;
                             border-width: 1px;
-                            border-color: #334155;
+                            border-color: dash_pill.has_hover ? #475569 : #334155;
+                            y: (parent.height - self.height) / 2;
 
                             dash_pill := TouchArea {
+                                mouse-cursor: pointer;
                                 clicked => {
                                     root.active_view = 0;
                                     root.open_dashboard();
@@ -154,7 +155,7 @@ export component MainWindow inherits Window {
                                     source: @image-url("../../assets/icons/arrow-left.svg");
                                     width: 12px;
                                     height: 12px;
-                                    colorize: #94A3B8;
+                                    colorize: dash_pill.has_hover ? #F8FAFC : #94A3B8;
                                     y: (parent.height - self.height) / 2;
                                 }
 
@@ -162,7 +163,7 @@ export component MainWindow inherits Window {
                                     text: "Back to Dashboard";
                                     font-size: 11px;
                                     font-weight: 600;
-                                    color: #94A3B8;
+                                    color: dash_pill.has_hover ? #F8FAFC : #94A3B8;
                                     vertical-alignment: center;
                                 }
                             }
@@ -203,36 +204,44 @@ export component MainWindow inherits Window {
                     }
                 }
             }
+        }
+    }
 
-            if root.active_view == 2: DeploymentForm {
-                vertical-stretch: 1;
-                edit_id <=> root.form_id;
-                form_name <=> root.form_name;
-                form_type <=> root.form_type;
-                form_work_dir <=> root.form_work_dir;
-                form_command <=> root.form_command;
-                form_env_text <=> root.form_env_text;
-                form_auto_restart <=> root.form_auto_restart;
-                is_new: root.form_is_new;
+    // Modal Deployment Dialog Overlay (renders on top of entire window)
+    if root.show_deployment_dialog: DeploymentDialog {
+        x: 0px;
+        y: 0px;
+        width: root.width;
+        height: root.height;
 
-                select_app_type(t) => {
-                    root.form_type = t;
-                    root.app_type_selected(t);
-                }
+        edit_id <=> root.form_id;
+        form_name <=> root.form_name;
+        form_type <=> root.form_type;
+        form_work_dir <=> root.form_work_dir;
+        form_command <=> root.form_command;
+        form_env_text <=> root.form_env_text;
+        form_auto_restart <=> root.form_auto_restart;
+        is_new: root.form_is_new;
 
-                save(id, name, type_val, work_dir, command, auto_restart) => {
-                    root.save_deployment(id, name, type_val, work_dir, command, root.form_env_text, auto_restart);
-                }
+        select_app_type(t) => {
+            root.form_type = t;
+            root.app_type_selected(t);
+        }
 
-                cancel => {
-                    root.active_view = 0;
-                    root.open_dashboard();
-                }
+        browse_work_dir => {
+            root.browse_work_dir();
+        }
 
-                delete_deployment(id) => {
-                    root.delete_app(id);
-                }
-            }
+        save(id, name, type_val, work_dir, command, auto_restart) => {
+            root.save_deployment(id, name, type_val, work_dir, command, root.form_env_text, auto_restart);
+        }
+
+        cancel => {
+            root.show_deployment_dialog = false;
+        }
+
+        delete_deployment(id) => {
+            root.delete_app(id);
         }
     }
 }

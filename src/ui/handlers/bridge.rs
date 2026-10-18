@@ -62,7 +62,7 @@ impl UiBridge {
             let w = window.as_weak();
             window.on_open_create_form(move || {
                 if let Some(w) = w.upgrade() {
-                    w.set_active_view(2);
+                    w.set_show_deployment_dialog(true);
                     w.set_form_is_new(true);
                     w.set_form_id(SharedString::from(""));
                     w.set_form_name(SharedString::from(""));
@@ -221,7 +221,7 @@ impl UiBridge {
                         w.set_form_command(SharedString::from(&config.command));
                         w.set_form_env_text(SharedString::from(format_env_string(&config.env_vars)));
                         w.set_form_auto_restart(config.auto_restart);
-                        w.set_active_view(2); // Form view
+                        w.set_show_deployment_dialog(true);
                     }
                 }
             });
@@ -256,7 +256,7 @@ impl UiBridge {
                 }
 
                 if let Some(w) = w.upgrade() {
-                    w.set_active_view(0); // return to dashboard
+                    w.set_show_deployment_dialog(false);
                     Self::refresh_ui(&w, &mgr);
                 }
             });
@@ -272,8 +272,42 @@ impl UiBridge {
                     let _ = mgr_lock.delete_deployment(&id);
                 }
                 if let Some(w) = w.upgrade() {
-                    w.set_active_view(0);
+                    w.set_show_deployment_dialog(false);
                     Self::refresh_ui(&w, &mgr);
+                }
+            });
+        }
+
+        // Browse working directory folder picker callback
+        {
+            let w = window.as_weak();
+            window.on_browse_work_dir(move || {
+                if let Some(w_strong) = w.upgrade() {
+                    let current_dir = w_strong.get_form_work_dir().to_string();
+                    let w_thread = w.clone();
+                    std::thread::spawn(move || {
+                        let mut dialog = rfd::FileDialog::new().set_title("Select Working Directory");
+                        let trimmed = current_dir.trim();
+                        if !trimmed.is_empty() {
+                            let path = std::path::Path::new(trimmed);
+                            if path.is_dir() {
+                                dialog = dialog.set_directory(path);
+                            } else if let Some(parent) = path.parent() {
+                                if parent.is_dir() {
+                                    dialog = dialog.set_directory(parent);
+                                }
+                            }
+                        }
+
+                        if let Some(folder) = dialog.pick_folder() {
+                            let path_str = folder.to_string_lossy().to_string();
+                            let _ = slint::invoke_from_event_loop(move || {
+                                if let Some(w) = w_thread.upgrade() {
+                                    w.set_form_work_dir(SharedString::from(path_str));
+                                }
+                            });
+                        }
+                    });
                 }
             });
         }
