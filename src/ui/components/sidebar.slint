@@ -37,11 +37,30 @@ export component Sidebar inherits Rectangle {
                 spacing: 8px;
                 alignment: start;
 
+                Image {
+                    source: @image-url("../../../assets/icons/bolt.svg");
+                    width: 18px;
+                    height: 18px;
+                    colorize: #38BDF8;
+                    vertical-alignment: center;
+                }
+
                 Text {
-                    text: "⚡ LiveShip";
+                    text: "LiveShip";
                     font-size: 16px;
                     font-weight: 700;
                     color: #38BDF8; // sky-400
+                    vertical-alignment: center;
+                }
+            }
+
+            if collapsed: HorizontalLayout {
+                alignment: center;
+                Image {
+                    source: @image-url("../../../assets/icons/bolt.svg");
+                    width: 18px;
+                    height: 18px;
+                    colorize: #38BDF8;
                     vertical-alignment: center;
                 }
             }
@@ -56,11 +75,11 @@ export component Sidebar inherits Rectangle {
                     clicked => { root.toggle_collapse(); }
                 }
 
-                Text {
-                    text: root.collapsed ? "»" : "«";
-                    font-size: 16px;
-                    font-weight: 700;
-                    color: #94A3B8;
+                Image {
+                    source: root.collapsed ? @image-url("../../../assets/icons/chevron-right.svg") : @image-url("../../../assets/icons/chevron-left.svg");
+                    width: 14px;
+                    height: 14px;
+                    colorize: #94A3B8;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
@@ -81,11 +100,11 @@ export component Sidebar inherits Rectangle {
                 alignment: center;
                 spacing: 6px;
 
-                Text {
-                    text: "+";
-                    font-size: 16px;
-                    font-weight: 700;
-                    color: #FFFFFF;
+                Image {
+                    source: @image-url("../../../assets/icons/plus.svg");
+                    width: 14px;
+                    height: 14px;
+                    colorize: #FFFFFF;
                     vertical-alignment: center;
                 }
 
@@ -115,9 +134,11 @@ export component Sidebar inherits Rectangle {
                 spacing: 10px;
                 alignment: start;
 
-                Text {
-                    text: "📊";
-                    font-size: 14px;
+                Image {
+                    source: @image-url("../../../assets/icons/dashboard.svg");
+                    width: 16px;
+                    height: 16px;
+                    colorize: dashboard_active ? #38BDF8 : #94A3B8;
                     vertical-alignment: center;
                 }
 

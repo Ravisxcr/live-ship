@@ -129,9 +129,18 @@ export component MainWindow inherits Window {
                                 padding-left: 10px;
                                 padding-right: 10px;
                                 alignment: center;
+                                spacing: 6px;
+
+                                Image {
+                                    source: @image-url("../../assets/icons/arrow-left.svg");
+                                    width: 12px;
+                                    height: 12px;
+                                    colorize: #94A3B8;
+                                    vertical-alignment: center;
+                                }
 
                                 Text {
-                                    text: "← Back to Dashboard";
+                                    text: "Back to Dashboard";
                                     font-size: 11px;
                                     font-weight: 600;
                                     color: #94A3B8;

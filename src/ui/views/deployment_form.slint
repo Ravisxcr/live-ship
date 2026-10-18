@@ -45,7 +45,7 @@ export component DeploymentForm inherits Rectangle {
                 }
 
                 if !is_new: Rectangle {
-                    width: 90px;
+                    width: 96px;
                     height: 34px;
                     border-radius: 6px;
                     background: del_touch.has_hover ? #991B1B : #7F1D1D;
@@ -54,13 +54,25 @@ export component DeploymentForm inherits Rectangle {
                         clicked => { root.delete_deployment(root.edit_id); }
                     }
 
-                    Text {
-                        text: "🗑 Delete";
-                        font-size: 12px;
-                        font-weight: 600;
-                        color: #FCA5A5;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    HorizontalLayout {
+                        alignment: center;
+                        spacing: 6px;
+
+                        Image {
+                            source: @image-url("../../../assets/icons/trash.svg");
+                            width: 13px;
+                            height: 13px;
+                            colorize: #FCA5A5;
+                            vertical-alignment: center;
+                        }
+
+                        Text {
+                            text: "Delete";
+                            font-size: 12px;
+                            font-weight: 600;
+                            color: #FCA5A5;
+                            vertical-alignment: center;
+                        }
                     }
                 }
             }
@@ -228,11 +240,11 @@ export component DeploymentForm inherits Rectangle {
                         clicked => { root.form_auto_restart = !root.form_auto_restart; }
                     }
 
-                    if root.form_auto_restart: Text {
-                        text: "✓";
-                        color: #FFFFFF;
-                        font-size: 14px;
-                        font-weight: 700;
+                    if root.form_auto_restart: Image {
+                        source: @image-url("../../../assets/icons/check.svg");
+                        width: 12px;
+                        height: 12px;
+                        colorize: #FFFFFF;
                         horizontal-alignment: center;
                         vertical-alignment: center;
                     }

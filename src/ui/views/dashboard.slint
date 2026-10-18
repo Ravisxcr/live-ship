@@ -64,11 +64,11 @@ export component DashboardView inherits Rectangle {
                     alignment: center;
                     spacing: 6px;
 
-                    Text {
-                        text: "+";
-                        font-size: 16px;
-                        font-weight: 700;
-                        color: #FFFFFF;
+                    Image {
+                        source: @image-url("../../../assets/icons/plus.svg");
+                        width: 14px;
+                        height: 14px;
+                        colorize: #FFFFFF;
                         vertical-alignment: center;
                     }
 
@@ -95,8 +95,16 @@ export component DashboardView inherits Rectangle {
                 alignment: center;
                 spacing: 12px;
 
+                Image {
+                    source: @image-url("../../../assets/icons/rocket.svg");
+                    width: 36px;
+                    height: 36px;
+                    colorize: #38BDF8;
+                    horizontal-alignment: center;
+                }
+
                 Text {
-                    text: "🚀 No deployments created yet";
+                    text: "No deployments created yet";
                     font-size: 16px;
                     font-weight: 600;
                     color: #E2E8F0;
@@ -180,10 +188,19 @@ export component DashboardView inherits Rectangle {
                                 spacing: 6px;
                                 alignment: start;
 
+                                Image {
+                                    source: @image-url("../../../assets/icons/folder.svg");
+                                    width: 13px;
+                                    height: 13px;
+                                    colorize: #64748B;
+                                    vertical-alignment: center;
+                                }
+
                                 Text {
-                                    text: "📁 Path:";
+                                    text: "Path:";
                                     font-size: 11px;
                                     color: #64748B;
+                                    vertical-alignment: center;
                                 }
 
                                 Text {
@@ -192,6 +209,7 @@ export component DashboardView inherits Rectangle {
                                     color: #94A3B8;
                                     font-family: "Consolas, monospace";
                                     overflow: elide;
+                                    vertical-alignment: center;
                                 }
                             }
 
@@ -200,10 +218,19 @@ export component DashboardView inherits Rectangle {
                                 spacing: 6px;
                                 alignment: start;
 
+                                Image {
+                                    source: @image-url("../../../assets/icons/terminal.svg");
+                                    width: 13px;
+                                    height: 13px;
+                                    colorize: #64748B;
+                                    vertical-alignment: center;
+                                }
+
                                 Text {
-                                    text: "⚡ Command:";
+                                    text: "Command:";
                                     font-size: 11px;
                                     color: #64748B;
+                                    vertical-alignment: center;
                                 }
 
                                 Text {
@@ -212,6 +239,7 @@ export component DashboardView inherits Rectangle {
                                     color: #CBD5E1;
                                     font-family: "Consolas, monospace";
                                     overflow: elide;
+                                    vertical-alignment: center;
                                 }
                             }
                         }
@@ -223,7 +251,7 @@ export component DashboardView inherits Rectangle {
                             y: (parent.height - self.height) / 2;
 
                             if !card.is_running: Rectangle {
-                                width: 80px;
+                                width: 84px;
                                 height: 32px;
                                 border-radius: 5px;
                                 background: start_touch.has_hover ? #059669 : #10B981;
@@ -232,18 +260,30 @@ export component DashboardView inherits Rectangle {
                                     clicked => { root.start_app(card.id); }
                                 }
 
-                                Text {
-                                    text: "▶ Start";
-                                    font-size: 12px;
-                                    font-weight: 700;
-                                    color: #FFFFFF;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
+                                HorizontalLayout {
+                                    alignment: center;
+                                    spacing: 5px;
+
+                                    Image {
+                                        source: @image-url("../../../assets/icons/play.svg");
+                                        width: 11px;
+                                        height: 11px;
+                                        colorize: #FFFFFF;
+                                        vertical-alignment: center;
+                                    }
+
+                                    Text {
+                                        text: "Start";
+                                        font-size: 12px;
+                                        font-weight: 700;
+                                        color: #FFFFFF;
+                                        vertical-alignment: center;
+                                    }
                                 }
                             }
 
                             if card.is_running: Rectangle {
-                                width: 80px;
+                                width: 84px;
                                 height: 32px;
                                 border-radius: 5px;
                                 background: stop_touch.has_hover ? #DC2626 : #EF4444;
@@ -252,18 +292,30 @@ export component DashboardView inherits Rectangle {
                                     clicked => { root.stop_app(card.id); }
                                 }
 
-                                Text {
-                                    text: "⏹ Stop";
-                                    font-size: 12px;
-                                    font-weight: 700;
-                                    color: #FFFFFF;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
+                                HorizontalLayout {
+                                    alignment: center;
+                                    spacing: 5px;
+
+                                    Image {
+                                        source: @image-url("../../../assets/icons/stop.svg");
+                                        width: 11px;
+                                        height: 11px;
+                                        colorize: #FFFFFF;
+                                        vertical-alignment: center;
+                                    }
+
+                                    Text {
+                                        text: "Stop";
+                                        font-size: 12px;
+                                        font-weight: 700;
+                                        color: #FFFFFF;
+                                        vertical-alignment: center;
+                                    }
                                 }
                             }
 
                             if card.is_running: Rectangle {
-                                width: 75px;
+                                width: 86px;
                                 height: 32px;
                                 border-radius: 5px;
                                 background: restart_touch.has_hover ? #D97706 : #F59E0B;
@@ -272,18 +324,30 @@ export component DashboardView inherits Rectangle {
                                     clicked => { root.restart_app(card.id); }
                                 }
 
-                                Text {
-                                    text: "🔄 Restart";
-                                    font-size: 11px;
-                                    font-weight: 700;
-                                    color: #FFFFFF;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
+                                HorizontalLayout {
+                                    alignment: center;
+                                    spacing: 5px;
+
+                                    Image {
+                                        source: @image-url("../../../assets/icons/refresh.svg");
+                                        width: 12px;
+                                        height: 12px;
+                                        colorize: #FFFFFF;
+                                        vertical-alignment: center;
+                                    }
+
+                                    Text {
+                                        text: "Restart";
+                                        font-size: 11px;
+                                        font-weight: 700;
+                                        color: #FFFFFF;
+                                        vertical-alignment: center;
+                                    }
                                 }
                             }
 
                             Rectangle {
-                                width: 68px;
+                                width: 72px;
                                 height: 32px;
                                 border-radius: 5px;
                                 background: logs_touch.has_hover ? #334155 : #1E293B;
@@ -294,18 +358,30 @@ export component DashboardView inherits Rectangle {
                                     clicked => { root.view_logs(card.id); }
                                 }
 
-                                Text {
-                                    text: "📋 Logs";
-                                    font-size: 11px;
-                                    font-weight: 600;
-                                    color: #94A3B8;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
+                                HorizontalLayout {
+                                    alignment: center;
+                                    spacing: 5px;
+
+                                    Image {
+                                        source: @image-url("../../../assets/icons/file-text.svg");
+                                        width: 12px;
+                                        height: 12px;
+                                        colorize: #94A3B8;
+                                        vertical-alignment: center;
+                                    }
+
+                                    Text {
+                                        text: "Logs";
+                                        font-size: 11px;
+                                        font-weight: 600;
+                                        color: #94A3B8;
+                                        vertical-alignment: center;
+                                    }
                                 }
                             }
 
                             Rectangle {
-                                width: 56px;
+                                width: 66px;
                                 height: 32px;
                                 border-radius: 5px;
                                 background: edit_touch.has_hover ? #334155 : #1E293B;
@@ -316,13 +392,25 @@ export component DashboardView inherits Rectangle {
                                     clicked => { root.edit_app(card.id); }
                                 }
 
-                                Text {
-                                    text: "⚙ Edit";
-                                    font-size: 11px;
-                                    font-weight: 600;
-                                    color: #94A3B8;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
+                                HorizontalLayout {
+                                    alignment: center;
+                                    spacing: 5px;
+
+                                    Image {
+                                        source: @image-url("../../../assets/icons/edit.svg");
+                                        width: 12px;
+                                        height: 12px;
+                                        colorize: #94A3B8;
+                                        vertical-alignment: center;
+                                    }
+
+                                    Text {
+                                        text: "Edit";
+                                        font-size: 11px;
+                                        font-weight: 600;
+                                        color: #94A3B8;
+                                        vertical-alignment: center;
+                                    }
                                 }
                             }
                         }

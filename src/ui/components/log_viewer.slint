@@ -36,6 +36,14 @@ export component LogViewer inherits Rectangle {
                     spacing: 8px;
                     alignment: start;
 
+                    Image {
+                        source: @image-url("../../../assets/icons/terminal.svg");
+                        width: 14px;
+                        height: 14px;
+                        colorize: #38BDF8;
+                        vertical-alignment: center;
+                    }
+
                     Text {
                         text: "Terminal Output - " + deployment_name;
                         color: #E2E8F0;
@@ -54,7 +62,7 @@ export component LogViewer inherits Rectangle {
                 }
 
                 Rectangle {
-                    width: 76px;
+                    width: 88px;
                     height: 26px;
                     border-radius: 4px;
                     background: clear_touch.has_hover ? #374151 : #1F2937;
@@ -66,12 +74,24 @@ export component LogViewer inherits Rectangle {
                         clicked => { root.clear_logs(); }
                     }
 
-                    Text {
-                        text: "Clear Logs";
-                        font-size: 11px;
-                        color: #9CA3AF;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    HorizontalLayout {
+                        alignment: center;
+                        spacing: 5px;
+
+                        Image {
+                            source: @image-url("../../../assets/icons/trash.svg");
+                            width: 11px;
+                            height: 11px;
+                            colorize: #9CA3AF;
+                            vertical-alignment: center;
+                        }
+
+                        Text {
+                            text: "Clear Logs";
+                            font-size: 11px;
+                            color: #9CA3AF;
+                            vertical-alignment: center;
+                        }
                     }
                 }
             }

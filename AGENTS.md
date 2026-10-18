@@ -35,6 +35,8 @@ The project adheres to a strict modular separation of concerns:
 live-ship/
 ├── Cargo.toml                  # Workspace dependencies and Slint build config
 ├── build.rs                    # Slint compiler build hook (`slint_build::compile`)
+├── assets/
+│   └── icons/                  # Crisp SVG vector icons (used in Slint UI via @image-url)
 ├── src/
 │   ├── main.rs                 # Application entry point: initializes state, builds UI, runs event loop
 │   ├── api/                    # Future headless/REST API endpoints and external interfaces
@@ -105,6 +107,10 @@ When writing or editing `.slint` files, strictly observe these rules:
    - Always ensure `use slint::ComponentHandle;` is in scope in any Rust module calling `.clone_strong()`, `.run()`, or accessing window methods.
 4. **Model Updates**:
    - To update a Slint array property, build a `slint::VecModel`, wrap it with `slint::ModelRc::new(...)`, and assign it to the property.
+5. **SVG Vector Icons**:
+   - Store monochrome vector icons in `assets/icons/` using white stroke/fill (`#FFFFFF`).
+   - Embed in Slint using `Image { source: @image-url("..."); colorize: <color>; width: ...; height: ...; }`.
+   - Never use raw unicode emojis in UI components.
 
 ---
 
