@@ -1,0 +1,207 @@
+import { Sidebar, SidebarItemData } from "components/sidebar.slint";
+import { LogViewer, LogLineData } from "components/log_viewer.slint";
+import { DashboardView, DeploymentCardData } from "views/dashboard.slint";
+import { DeploymentForm } from "views/deployment_form.slint";
+
+export component MainWindow inherits Window {
+    title: "LiveShip - Standalone WebApp Deployment Manager";
+    preferred-width: 1080px;
+    preferred-height: 720px;
+    min-width: 800px;
+    min-height: 550px;
+    background: #0B1120; // slate-950
+
+    // State properties
+    in-out property <bool> sidebar_collapsed: false;
+    in-out property <int> active_view: 0; // 0 = Dashboard, 1 = Logs, 2 = Form
+    in-out property <string> selected_deployment_id: "";
+    in-out property <string> selected_deployment_name: "";
+    in-out property <bool> selected_is_running: false;
+
+    // Data models
+    in property <[SidebarItemData]> sidebar_items: [];
+    in property <[DeploymentCardData]> dashboard_cards: [];
+    in property <[LogLineData]> current_logs: [];
+
+    // Form properties
+    in-out property <string> form_id: "";
+    in-out property <string> form_name: "";
+    in-out property <string> form_type: "FastAPI (Python)";
+    in-out property <string> form_work_dir: "";
+    in-out property <string> form_command: "";
+    in-out property <string> form_env_text: "";
+    in-out property <bool> form_auto_restart: false;
+    in-out property <bool> form_is_new: true;
+
+    // Callbacks to Rust backend
+    callback toggle_sidebar();
+    callback open_dashboard();
+    callback open_create_form();
+    callback select_deployment_item(string);
+    callback start_app(string);
+    callback stop_app(string);
+    callback restart_app(string);
+    callback view_logs(string);
+    callback edit_app(string);
+    callback save_deployment(string, string, string, string, string, string, bool);
+    callback delete_app(string);
+    callback clear_logs_clicked(string);
+    callback app_type_selected(string);
+
+    HorizontalLayout {
+        padding: 0px;
+        spacing: 0px;
+
+        // Collapsible Sidebar
+        Sidebar {
+            collapsed: root.sidebar_collapsed;
+            items: root.sidebar_items;
+            active_id: root.selected_deployment_id;
+            dashboard_active: root.active_view == 0;
+
+            toggle_collapse => {
+                root.sidebar_collapsed = !root.sidebar_collapsed;
+                root.toggle_sidebar();
+            }
+
+            create_new => {
+                root.open_create_form();
+            }
+
+            select_dashboard => {
+                root.active_view = 0;
+                root.open_dashboard();
+            }
+
+            select_item(id) => {
+                root.select_deployment_item(id);
+            }
+        }
+
+        // Main View Area
+        VerticalLayout {
+            horizontal-stretch: 1;
+
+            // Top Header Bar
+            Rectangle {
+                height: 52px;
+                background: #0F172A;
+
+                HorizontalLayout {
+                    padding-left: 20px;
+                    padding-right: 20px;
+                    alignment: space-between;
+
+                    HorizontalLayout {
+                        spacing: 12px;
+                        alignment: start;
+
+                        Text {
+                            text: root.active_view == 0 ? "Dashboard" : (root.active_view == 1 ? ("Logs: " + root.selected_deployment_name) : "Deployment Configuration");
+                            font-size: 15px;
+                            font-weight: 700;
+                            color: #F8FAFC;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    // Quick navigation pills in top bar
+                    HorizontalLayout {
+                        spacing: 8px;
+                        alignment: end;
+                        y: (parent.height - self.height) / 2;
+
+                        if root.active_view != 0: Rectangle {
+                            height: 30px;
+                            border-radius: 5px;
+                            background: dash_pill.has_hover ? #334155 : #1E293B;
+                            border-width: 1px;
+                            border-color: #334155;
+
+                            dash_pill := TouchArea {
+                                clicked => {
+                                    root.active_view = 0;
+                                    root.open_dashboard();
+                                }
+                            }
+
+                            HorizontalLayout {
+                                padding-left: 10px;
+                                padding-right: 10px;
+                                alignment: center;
+
+                                Text {
+                                    text: "← Back to Dashboard";
+                                    font-size: 11px;
+                                    font-weight: 600;
+                                    color: #94A3B8;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // View Content Switcher
+            if root.active_view == 0: DashboardView {
+                deployments: root.dashboard_cards;
+
+                create_new => { root.open_create_form(); }
+                start_app(id) => { root.start_app(id); }
+                stop_app(id) => { root.stop_app(id); }
+                restart_app(id) => { root.restart_app(id); }
+                view_logs(id) => { root.view_logs(id); }
+                edit_app(id) => { root.edit_app(id); }
+            }
+
+            if root.active_view == 1: Rectangle {
+                background: #0B1120;
+
+                VerticalLayout {
+                    padding: 16px;
+
+                    LogViewer {
+                        logs: root.current_logs;
+                        deployment_name: root.selected_deployment_name;
+                        is_running: root.selected_is_running;
+
+                        clear_logs => {
+                            root.clear_logs_clicked(root.selected_deployment_id);
+                        }
+                    }
+                }
+            }
+
+            if root.active_view == 2: DeploymentForm {
+                edit_id <=> root.form_id;
+                form_name <=> root.form_name;
+                form_type <=> root.form_type;
+                form_work_dir <=> root.form_work_dir;
+                form_command <=> root.form_command;
+                form_env_text <=> root.form_env_text;
+                form_auto_restart <=> root.form_auto_restart;
+                is_new: root.form_is_new;
+
+                select_app_type(t) => {
+                    root.form_type = t;
+                    root.app_type_selected(t);
+                }
+
+                save(id, name, type_val, work_dir, command, auto_restart) => {
+                    root.save_deployment(id, name, type_val, work_dir, command, root.form_env_text, auto_restart);
+                }
+
+                cancel => {
+                    root.active_view = 0;
+                    root.open_dashboard();
+                }
+
+                delete_deployment(id) => {
+                    root.delete_app(id);
+                }
+            }
+        }
+    }
+}
+

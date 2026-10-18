@@ -1,0 +1,128 @@
+import { ScrollView } from "std-widgets.slint";
+
+export struct LogLineData {
+    timestamp: string,
+    stream: string,
+    message: string,
+    line_color: color,
+}
+
+export component LogViewer inherits Rectangle {
+    in property <[LogLineData]> logs: [];
+    in property <string> deployment_name: "Deployment";
+    in property <bool> is_running: false;
+
+    callback clear_logs();
+
+    background: #0B0F17; // deep dark terminal background
+    border-color: #1E293B;
+    border-width: 1px;
+    border-radius: 8px;
+
+    VerticalLayout {
+        padding: 0px;
+
+        // Terminal Top Bar
+        Rectangle {
+            height: 38px;
+            background: #111827;
+
+            HorizontalLayout {
+                padding-left: 12px;
+                padding-right: 12px;
+                alignment: space-between;
+
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: start;
+
+                    Text {
+                        text: "Terminal Output - " + deployment_name;
+                        color: #E2E8F0;
+                        font-size: 12px;
+                        font-weight: 600;
+                        vertical-alignment: center;
+                    }
+
+                    if is_running: Rectangle {
+                        width: 8px;
+                        height: 8px;
+                        border-radius: 4px;
+                        background: #10B981;
+                        y: (parent.height - self.height) / 2;
+                    }
+                }
+
+                Rectangle {
+                    width: 76px;
+                    height: 26px;
+                    border-radius: 4px;
+                    background: clear_touch.has_hover ? #374151 : #1F2937;
+                    border-width: 1px;
+                    border-color: #4B5563;
+                    y: (parent.height - self.height) / 2;
+
+                    clear_touch := TouchArea {
+                        clicked => { root.clear_logs(); }
+                    }
+
+                    Text {
+                        text: "Clear Logs";
+                        font-size: 11px;
+                        color: #9CA3AF;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+
+        // Terminal Logs Content
+        ScrollView {
+            VerticalLayout {
+                padding: 10px;
+                spacing: 3px;
+                alignment: start;
+
+                if root.logs.length == 0: Text {
+                    text: "No logs recorded yet. Start deployment to capture output.";
+                    color: #4B5563;
+                    font-size: 12px;
+                    font-italic: true;
+                }
+
+                for entry in root.logs: HorizontalLayout {
+                    spacing: 8px;
+                    alignment: start;
+
+                    Text {
+                        text: "[" + entry.timestamp + "]";
+                        color: #64748B;
+                        font-size: 11px;
+                        font-family: "Consolas, monospace";
+                        width: 65px;
+                    }
+
+                    Text {
+                        text: "[" + entry.stream + "]";
+                        color: entry.line_color;
+                        font-size: 11px;
+                        font-weight: 700;
+                        font-family: "Consolas, monospace";
+                        width: 65px;
+                    }
+
+                    Text {
+                        text: entry.message;
+                        color: entry.line_color;
+                        font-size: 12px;
+                        font-family: "Consolas, monospace";
+                        wrap: word-wrap;
+                        horizontal-stretch: 1;
+                    }
+                }
+            }
+        }
+    }
+}
+

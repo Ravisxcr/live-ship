@@ -1,0 +1,36 @@
+export component StatusBadge inherits Rectangle {
+    in property <string> status_text: "Stopped";
+    in property <color> badge_color: #64748B;
+    in property <color> dot_color: #94A3B8;
+
+    border-radius: 12px;
+    background: badge_color.with_alpha(0.15);
+    border-width: 1px;
+    border-color: badge_color.with_alpha(0.4);
+    height: 26px;
+    width: 90px;
+
+    HorizontalLayout {
+        alignment: center;
+        spacing: 6px;
+        padding-left: 8px;
+        padding-right: 8px;
+
+        Rectangle {
+            width: 8px;
+            height: 8px;
+            border-radius: 4px;
+            background: dot_color;
+            y: (parent.height - self.height) / 2;
+        }
+
+        Text {
+            text: status_text;
+            color: badge_color;
+            font-size: 11px;
+            font-weight: 700;
+            vertical-alignment: center;
+        }
+    }
+}
+

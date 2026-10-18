@@ -1,0 +1,191 @@
+export struct SidebarItemData {
+    id: string,
+    name: string,
+    app_type: string,
+    status_text: string,
+    status_color: color,
+}
+
+export component Sidebar inherits Rectangle {
+    in property <bool> collapsed: false;
+    in property <[SidebarItemData]> items: [];
+    in property <string> active_id: "";
+    in property <bool> dashboard_active: true;
+
+    callback toggle_collapse();
+    callback create_new();
+    callback select_item(string);
+    callback select_dashboard();
+
+    width: collapsed ? 64px : 240px;
+    background: #0F172A; // slate-900
+    border-color: #1E293B; // slate-800
+    border-width: 1px;
+
+    animate width { duration: 150ms; easing: ease-out; }
+
+    VerticalLayout {
+        padding: 12px;
+        spacing: 12px;
+
+        // Header: Logo / Title + Collapse button
+        HorizontalLayout {
+            alignment: space-between;
+            height: 36px;
+
+            if !collapsed: HorizontalLayout {
+                spacing: 8px;
+                alignment: start;
+
+                Text {
+                    text: "⚡ LiveShip";
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: #38BDF8; // sky-400
+                    vertical-alignment: center;
+                }
+            }
+
+            Rectangle {
+                width: 32px;
+                height: 32px;
+                border-radius: 6px;
+                background: collapse_touch.has_hover ? #1E293B : transparent;
+
+                collapse_touch := TouchArea {
+                    clicked => { root.toggle_collapse(); }
+                }
+
+                Text {
+                    text: root.collapsed ? "»" : "«";
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: #94A3B8;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        // Action: New Deployment Button
+        Rectangle {
+            height: 38px;
+            border-radius: 6px;
+            background: btn_touch.pressed ? #0284C7 : (btn_touch.has_hover ? #0369A1 : #0284C7);
+
+            btn_touch := TouchArea {
+                clicked => { root.create_new(); }
+            }
+
+            HorizontalLayout {
+                alignment: center;
+                spacing: 6px;
+
+                Text {
+                    text: "+";
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: #FFFFFF;
+                    vertical-alignment: center;
+                }
+
+                if !collapsed: Text {
+                    text: "New Deployment";
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: #FFFFFF;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        // Navigation: Dashboard link
+        Rectangle {
+            height: 36px;
+            border-radius: 6px;
+            background: dashboard_active ? #1E293B : (dash_touch.has_hover ? #172033 : transparent);
+
+            dash_touch := TouchArea {
+                clicked => { root.select_dashboard(); }
+            }
+
+            HorizontalLayout {
+                padding-left: 10px;
+                padding-right: 10px;
+                spacing: 10px;
+                alignment: start;
+
+                Text {
+                    text: "📊";
+                    font-size: 14px;
+                    vertical-alignment: center;
+                }
+
+                if !collapsed: Text {
+                    text: "Dashboard";
+                    font-size: 13px;
+                    font-weight: dashboard_active ? 700 : 500;
+                    color: dashboard_active ? #F8FAFC : #94A3B8;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        // Section Separator
+        if !collapsed: Rectangle {
+            height: 1px;
+            background: #1E293B;
+        }
+
+        if !collapsed: Text {
+            text: "DEPLOYMENTS";
+            font-size: 10px;
+            font-weight: 700;
+            color: #64748B;
+        }
+
+        // Deployment List
+        VerticalLayout {
+            spacing: 4px;
+
+            for item in root.items: Rectangle {
+                height: 36px;
+                border-radius: 6px;
+                background: (!dashboard_active && active_id == item.id) ? #1E293B : (item_touch.has_hover ? #172033 : transparent);
+
+                item_touch := TouchArea {
+                    clicked => { root.select_item(item.id); }
+                }
+
+                HorizontalLayout {
+                    padding-left: 10px;
+                    padding-right: 10px;
+                    spacing: 8px;
+                    alignment: start;
+
+                    // Color-coded status indicator dot
+                    Rectangle {
+                        width: 8px;
+                        height: 8px;
+                        border-radius: 4px;
+                        background: item.status_color;
+                        y: (parent.height - self.height) / 2;
+                    }
+
+                    if !collapsed: Text {
+                        text: item.name;
+                        font-size: 12px;
+                        font-weight: (!dashboard_active && active_id == item.id) ? 700 : 500;
+                        color: (!dashboard_active && active_id == item.id) ? #F8FAFC : #CBD5E1;
+                        vertical-alignment: center;
+                        overflow: elide;
+                    }
+                }
+            }
+        }
+
+        // Flexible spacer to push footer down
+        Rectangle {}
+    }
+}
+

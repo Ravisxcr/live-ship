@@ -1,0 +1,308 @@
+import { LineEdit, TextEdit, ScrollView } from "std-widgets.slint";
+
+export component DeploymentForm inherits Rectangle {
+    in-out property <string> edit_id: "";
+    in-out property <string> form_name: "";
+    in-out property <string> form_type: "FastAPI (Python)";
+    in-out property <string> form_work_dir: "";
+    in-out property <string> form_command: "";
+    in-out property <string> form_env_text: "";
+    in-out property <bool> form_auto_restart: false;
+    in property <bool> is_new: true;
+
+    callback save(string, string, string, string, string, bool);
+    callback cancel();
+    callback delete_deployment(string);
+    callback select_app_type(string);
+
+    background: #0B1120; // slate-950
+
+    ScrollView {
+        VerticalLayout {
+            padding: 24px;
+            spacing: 20px;
+            alignment: start;
+
+            // Form Title
+            HorizontalLayout {
+                alignment: space-between;
+
+                VerticalLayout {
+                    spacing: 4px;
+
+                    Text {
+                        text: is_new ? "Create New Deployment" : "Edit Deployment Configuration";
+                        font-size: 20px;
+                        font-weight: 700;
+                        color: #F8FAFC;
+                    }
+
+                    Text {
+                        text: "Configure the working directory, execution command, and injected environment variables.";
+                        font-size: 13px;
+                        color: #94A3B8;
+                    }
+                }
+
+                if !is_new: Rectangle {
+                    width: 90px;
+                    height: 34px;
+                    border-radius: 6px;
+                    background: del_touch.has_hover ? #991B1B : #7F1D1D;
+
+                    del_touch := TouchArea {
+                        clicked => { root.delete_deployment(root.edit_id); }
+                    }
+
+                    Text {
+                        text: "🗑 Delete";
+                        font-size: 12px;
+                        font-weight: 600;
+                        color: #FCA5A5;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            // Quick App Type Presets
+            VerticalLayout {
+                spacing: 8px;
+
+                Text {
+                    text: "APPLICATION TYPE / PRESET";
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: #64748B;
+                }
+
+                HorizontalLayout {
+                    spacing: 10px;
+
+                    for type_name in ["FastAPI (Python)", "Go Binary", "React App", "Custom"]: Rectangle {
+                        height: 34px;
+                        border-radius: 6px;
+                        background: form_type == type_name ? #0284C7 : (preset_touch.has_hover ? #1E293B : #0F172A);
+                        border-width: 1px;
+                        border-color: form_type == type_name ? #38BDF8 : #334155;
+
+                        preset_touch := TouchArea {
+                            clicked => { root.select_app_type(type_name); }
+                        }
+
+                        HorizontalLayout {
+                            padding-left: 12px;
+                            padding-right: 12px;
+                            alignment: center;
+
+                            Text {
+                                text: type_name;
+                                font-size: 12px;
+                                font-weight: 600;
+                                color: form_type == type_name ? #FFFFFF : #CBD5E1;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Deployment Name
+            VerticalLayout {
+                spacing: 6px;
+
+                Text {
+                    text: "DEPLOYMENT NAME";
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: #64748B;
+                }
+
+                LineEdit {
+                    text <=> root.form_name;
+                    placeholder-text: "e.g. FastAPI Auth Service, Go Payment Gateway, React Frontend";
+                    height: 38px;
+                }
+            }
+
+            // Working Directory Path
+            VerticalLayout {
+                spacing: 6px;
+
+                HorizontalLayout {
+                    alignment: space-between;
+
+                    Text {
+                        text: "WORKING DIRECTORY (TERMINAL PATH)";
+                        font-size: 11px;
+                        font-weight: 700;
+                        color: #64748B;
+                    }
+
+                    Text {
+                        text: "Path where terminal process will execute";
+                        font-size: 11px;
+                        color: #94A3B8;
+                    }
+                }
+
+                LineEdit {
+                    text <=> root.form_work_dir;
+                    placeholder-text: "e.g. C:\\Projects\\my-fastapi-app or e:\\My Code\\react-dashboard";
+                    height: 38px;
+                }
+            }
+
+            // Command Line
+            VerticalLayout {
+                spacing: 6px;
+
+                HorizontalLayout {
+                    alignment: space-between;
+
+                    Text {
+                        text: "EXECUTION / START COMMAND";
+                        font-size: 11px;
+                        font-weight: 700;
+                        color: #64748B;
+                    }
+
+                    Text {
+                        text: "Supports flags and arguments";
+                        font-size: 11px;
+                        color: #94A3B8;
+                    }
+                }
+
+                LineEdit {
+                    text <=> root.form_command;
+                    placeholder-text: "e.g. uvicorn main:app --reload --port 8000 OR go run . OR npm run dev";
+                    height: 38px;
+                }
+            }
+
+            // Environment Variables Injection
+            VerticalLayout {
+                spacing: 6px;
+
+                HorizontalLayout {
+                    alignment: space-between;
+
+                    Text {
+                        text: "ENVIRONMENT VARIABLES (.ENV FORMAT)";
+                        font-size: 11px;
+                        font-weight: 700;
+                        color: #64748B;
+                    }
+
+                    Text {
+                        text: "Injected directly into process terminal (KEY=VALUE per line)";
+                        font-size: 11px;
+                        color: #94A3B8;
+                    }
+                }
+
+                TextEdit {
+                    text <=> root.form_env_text;
+                    height: 120px;
+                    font-family: "Consolas, monospace";
+                    font-size: 12px;
+                }
+            }
+
+            // Auto-Restart Option
+            HorizontalLayout {
+                spacing: 10px;
+                alignment: start;
+
+                Rectangle {
+                    width: 22px;
+                    height: 22px;
+                    border-radius: 4px;
+                    background: root.form_auto_restart ? #0284C7 : #1E293B;
+                    border-width: 1px;
+                    border-color: #334155;
+                    y: (parent.height - self.height) / 2;
+
+                    check_touch := TouchArea {
+                        clicked => { root.form_auto_restart = !root.form_auto_restart; }
+                    }
+
+                    if root.form_auto_restart: Text {
+                        text: "✓";
+                        color: #FFFFFF;
+                        font-size: 14px;
+                        font-weight: 700;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+
+                Text {
+                    text: "Auto-restart if process crashes or exits";
+                    font-size: 12px;
+                    color: #CBD5E1;
+                    vertical-alignment: center;
+                }
+            }
+
+            // Form Action Buttons
+            HorizontalLayout {
+                spacing: 12px;
+                alignment: start;
+
+                Rectangle {
+                    width: 140px;
+                    height: 40px;
+                    border-radius: 6px;
+                    background: save_touch.has_hover ? #0284C7 : #0369A1;
+
+                    save_touch := TouchArea {
+                        clicked => {
+                            root.save(
+                                root.edit_id,
+                                root.form_name,
+                                root.form_type,
+                                root.form_work_dir,
+                                root.form_command,
+                                root.form_auto_restart
+                            );
+                        }
+                    }
+
+                    Text {
+                        text: is_new ? "Create Deployment" : "Save Changes";
+                        font-size: 12px;
+                        font-weight: 700;
+                        color: #FFFFFF;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+
+                Rectangle {
+                    width: 100px;
+                    height: 40px;
+                    border-radius: 6px;
+                    background: cancel_touch.has_hover ? #334155 : #1E293B;
+                    border-width: 1px;
+                    border-color: #334155;
+
+                    cancel_touch := TouchArea {
+                        clicked => { root.cancel(); }
+                    }
+
+                    Text {
+                        text: "Cancel";
+                        font-size: 12px;
+                        font-weight: 600;
+                        color: #94A3B8;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+    }
+}
+

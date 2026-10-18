@@ -1,0 +1,335 @@
+import { ScrollView } from "std-widgets.slint";
+import { StatusBadge } from "../components/status_badge.slint";
+
+export struct DeploymentCardData {
+    id: string,
+    name: string,
+    app_type: string,
+    work_dir: string,
+    command: string,
+    status_text: string,
+    status_color: color,
+    dot_color: color,
+    is_running: bool,
+}
+
+export component DashboardView inherits Rectangle {
+    in property <[DeploymentCardData]> deployments: [];
+
+    callback start_app(string);
+    callback stop_app(string);
+    callback restart_app(string);
+    callback view_logs(string);
+    callback edit_app(string);
+    callback create_new();
+
+    background: #0B1120; // slate-950
+
+    VerticalLayout {
+        padding: 24px;
+        spacing: 20px;
+
+        // Header Title + Stats
+        HorizontalLayout {
+            alignment: space-between;
+
+            VerticalLayout {
+                spacing: 4px;
+
+                Text {
+                    text: "Deployments Dashboard";
+                    font-size: 22px;
+                    font-weight: 700;
+                    color: #F8FAFC;
+                }
+
+                Text {
+                    text: "Manage and monitor standalone FastAPI, Go binary, and React web applications";
+                    font-size: 13px;
+                    color: #94A3B8;
+                }
+            }
+
+            Rectangle {
+                width: 140px;
+                height: 38px;
+                border-radius: 6px;
+                background: new_btn.has_hover ? #0284C7 : #0369A1;
+
+                new_btn := TouchArea {
+                    clicked => { root.create_new(); }
+                }
+
+                HorizontalLayout {
+                    alignment: center;
+                    spacing: 6px;
+
+                    Text {
+                        text: "+";
+                        font-size: 16px;
+                        font-weight: 700;
+                        color: #FFFFFF;
+                        vertical-alignment: center;
+                    }
+
+                    Text {
+                        text: "Add Deployment";
+                        font-size: 12px;
+                        font-weight: 600;
+                        color: #FFFFFF;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+
+        // Empty state if no deployments
+        if root.deployments.length == 0: Rectangle {
+            height: 200px;
+            background: #0F172A;
+            border-radius: 8px;
+            border-width: 1px;
+            border-color: #1E293B;
+
+            VerticalLayout {
+                alignment: center;
+                spacing: 12px;
+
+                Text {
+                    text: "🚀 No deployments created yet";
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #E2E8F0;
+                    horizontal-alignment: center;
+                }
+
+                Text {
+                    text: "Click '+ Add Deployment' above or in the sidebar to configure your first application.";
+                    font-size: 13px;
+                    color: #64748B;
+                    horizontal-alignment: center;
+                }
+            }
+        }
+
+        // Deployment Cards List
+        ScrollView {
+            VerticalLayout {
+                spacing: 12px;
+
+                for card in root.deployments: Rectangle {
+                    height: 110px;
+                    border-radius: 8px;
+                    background: #0F172A;
+                    border-width: 1px;
+                    border-color: card.is_running ? #10B981.with_alpha(0.4) : #1E293B;
+
+                    HorizontalLayout {
+                        padding: 16px;
+                        spacing: 16px;
+                        alignment: space-between;
+
+                        // Left info block
+                        VerticalLayout {
+                            spacing: 6px;
+                            horizontal-stretch: 1;
+
+                            HorizontalLayout {
+                                spacing: 10px;
+                                alignment: start;
+
+                                Text {
+                                    text: card.name;
+                                    font-size: 16px;
+                                    font-weight: 700;
+                                    color: #F8FAFC;
+                                    vertical-alignment: center;
+                                }
+
+                                Rectangle {
+                                    border-radius: 4px;
+                                    background: #1E293B;
+                                    height: 20px;
+                                    y: (parent.height - self.height) / 2;
+
+                                    HorizontalLayout {
+                                        padding-left: 6px;
+                                        padding-right: 6px;
+
+                                        Text {
+                                            text: card.app_type;
+                                            font-size: 10px;
+                                            font-weight: 600;
+                                            color: #38BDF8;
+                                            vertical-alignment: center;
+                                            horizontal-alignment: center;
+                                        }
+                                    }
+                                }
+
+                                StatusBadge {
+                                    status_text: card.status_text;
+                                    badge_color: card.status_color;
+                                    dot_color: card.dot_color;
+                                    y: (parent.height - self.height) / 2;
+                                }
+                            }
+
+                            // Directory path
+                            HorizontalLayout {
+                                spacing: 6px;
+                                alignment: start;
+
+                                Text {
+                                    text: "📁 Path:";
+                                    font-size: 11px;
+                                    color: #64748B;
+                                }
+
+                                Text {
+                                    text: card.work_dir != "" ? card.work_dir : "(default workspace)";
+                                    font-size: 11px;
+                                    color: #94A3B8;
+                                    font-family: "Consolas, monospace";
+                                    overflow: elide;
+                                }
+                            }
+
+                            // Command
+                            HorizontalLayout {
+                                spacing: 6px;
+                                alignment: start;
+
+                                Text {
+                                    text: "⚡ Command:";
+                                    font-size: 11px;
+                                    color: #64748B;
+                                }
+
+                                Text {
+                                    text: card.command;
+                                    font-size: 11px;
+                                    color: #CBD5E1;
+                                    font-family: "Consolas, monospace";
+                                    overflow: elide;
+                                }
+                            }
+                        }
+
+                        // Right action buttons
+                        HorizontalLayout {
+                            spacing: 8px;
+                            alignment: end;
+                            y: (parent.height - self.height) / 2;
+
+                            if !card.is_running: Rectangle {
+                                width: 80px;
+                                height: 32px;
+                                border-radius: 5px;
+                                background: start_touch.has_hover ? #059669 : #10B981;
+
+                                start_touch := TouchArea {
+                                    clicked => { root.start_app(card.id); }
+                                }
+
+                                Text {
+                                    text: "▶ Start";
+                                    font-size: 12px;
+                                    font-weight: 700;
+                                    color: #FFFFFF;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+
+                            if card.is_running: Rectangle {
+                                width: 80px;
+                                height: 32px;
+                                border-radius: 5px;
+                                background: stop_touch.has_hover ? #DC2626 : #EF4444;
+
+                                stop_touch := TouchArea {
+                                    clicked => { root.stop_app(card.id); }
+                                }
+
+                                Text {
+                                    text: "⏹ Stop";
+                                    font-size: 12px;
+                                    font-weight: 700;
+                                    color: #FFFFFF;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+
+                            if card.is_running: Rectangle {
+                                width: 75px;
+                                height: 32px;
+                                border-radius: 5px;
+                                background: restart_touch.has_hover ? #D97706 : #F59E0B;
+
+                                restart_touch := TouchArea {
+                                    clicked => { root.restart_app(card.id); }
+                                }
+
+                                Text {
+                                    text: "🔄 Restart";
+                                    font-size: 11px;
+                                    font-weight: 700;
+                                    color: #FFFFFF;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+
+                            Rectangle {
+                                width: 68px;
+                                height: 32px;
+                                border-radius: 5px;
+                                background: logs_touch.has_hover ? #334155 : #1E293B;
+                                border-width: 1px;
+                                border-color: #334155;
+
+                                logs_touch := TouchArea {
+                                    clicked => { root.view_logs(card.id); }
+                                }
+
+                                Text {
+                                    text: "📋 Logs";
+                                    font-size: 11px;
+                                    font-weight: 600;
+                                    color: #94A3B8;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+
+                            Rectangle {
+                                width: 56px;
+                                height: 32px;
+                                border-radius: 5px;
+                                background: edit_touch.has_hover ? #334155 : #1E293B;
+                                border-width: 1px;
+                                border-color: #334155;
+
+                                edit_touch := TouchArea {
+                                    clicked => { root.edit_app(card.id); }
+                                }
+
+                                Text {
+                                    text: "⚙ Edit";
+                                    font-size: 11px;
+                                    font-weight: 600;
+                                    color: #94A3B8;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
