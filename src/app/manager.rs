@@ -1,4 +1,4 @@
-use crate::config::{AppStatus, DeploymentConfig, Storage};
+use crate::config::{AppStatus, DeploymentConfig, LogDatabase, Storage};
 use crate::utils::{LogBuffer, LogEntry, LogType, ProcessRunner};
 use std::collections::HashMap;
 use std::process::Child;
@@ -13,11 +13,17 @@ pub struct DeploymentManager {
     logs: HashMap<String, LogBuffer>,
     log_receivers: HashMap<String, Receiver<LogEntry>>,
     storage: Storage,
+    log_db: LogDatabase,
 }
 
 impl DeploymentManager {
     pub fn new() -> Self {
         let storage = Storage::new();
+        let log_db = LogDatabase::new();
+        Self::with_storage_and_db(storage, log_db)
+    }
+
+    pub fn with_storage_and_db(storage: Storage, log_db: LogDatabase) -> Self {
         let loaded = storage.load();
 
         let mut deployments = HashMap::new();
@@ -26,7 +32,15 @@ impl DeploymentManager {
 
         for d in loaded {
             statuses.insert(d.id.clone(), AppStatus::Stopped);
-            logs.insert(d.id.clone(), LogBuffer::new(MAX_LOG_LINES));
+            let mut buf = LogBuffer::new(MAX_LOG_LINES);
+            if d.persist_logs {
+                if let Ok(past_logs) = log_db.fetch_recent_logs(&d.id, MAX_LOG_LINES) {
+                    for e in past_logs {
+                        buf.push(e);
+                    }
+                }
+            }
+            logs.insert(d.id.clone(), buf);
             deployments.insert(d.id.clone(), d);
         }
 
@@ -37,6 +51,7 @@ impl DeploymentManager {
             logs,
             log_receivers: HashMap::new(),
             storage,
+            log_db,
         }
     }
 
@@ -62,8 +77,21 @@ impl DeploymentManager {
     pub fn add_or_update(&mut self, config: DeploymentConfig) -> Result<(), String> {
         let id = config.id.clone();
         if !self.logs.contains_key(&id) {
-            self.logs.insert(id.clone(), LogBuffer::new(MAX_LOG_LINES));
+            let mut buf = LogBuffer::new(MAX_LOG_LINES);
+            if config.persist_logs {
+                if let Ok(past_logs) = self.log_db.fetch_recent_logs(&id, MAX_LOG_LINES) {
+                    for e in past_logs {
+                        buf.push(e);
+                    }
+                }
+            }
+            self.logs.insert(id.clone(), buf);
             self.statuses.insert(id.clone(), AppStatus::Stopped);
+        }
+        if config.persist_logs {
+            if let Err(e) = self.log_db.create_table(&id) {
+                eprintln!("Failed to create SQLite table for deployment {}: {}", id, e);
+            }
         }
         self.deployments.insert(id, config);
         self.save_to_storage()
@@ -77,7 +105,27 @@ impl DeploymentManager {
         self.statuses.remove(id);
         self.logs.remove(id);
         self.log_receivers.remove(id);
+        if let Err(e) = self.log_db.delete_table(id) {
+            eprintln!("Failed to delete SQLite table for deployment {}: {}", id, e);
+        }
         self.save_to_storage()
+    }
+
+    pub fn log_db(&self) -> &LogDatabase {
+        &self.log_db
+    }
+
+    pub fn push_log(&mut self, id: &str, entry: LogEntry) {
+        if let Some(buf) = self.logs.get_mut(id) {
+            buf.push(entry.clone());
+        }
+        if let Some(cfg) = self.deployments.get(id) {
+            if cfg.persist_logs {
+                if let Err(e) = self.log_db.insert_logs(id, &[entry]) {
+                    eprintln!("Failed to persist log in SQLite for {}: {}", id, e);
+                }
+            }
+        }
     }
 
     pub fn is_running(&self, id: &str) -> bool {
@@ -102,9 +150,7 @@ impl DeploymentManager {
             Ok(c) => c,
             Err(e) => {
                 self.statuses.insert(id.to_string(), AppStatus::Error(e.clone()));
-                if let Some(buf) = self.logs.get_mut(id) {
-                    buf.push(LogEntry::new(LogType::SystemError, format!("Failed to start: {}", e)));
-                }
+                self.push_log(id, LogEntry::new(LogType::SystemError, format!("Failed to start: {}", e)));
                 return Err(e);
             }
         };
@@ -120,9 +166,7 @@ impl DeploymentManager {
         if let Some(mut child) = self.processes.remove(id) {
             ProcessRunner::kill_process_tree(&mut child);
             self.statuses.insert(id.to_string(), AppStatus::Stopped);
-            if let Some(buf) = self.logs.get_mut(id) {
-                buf.push(LogEntry::new(LogType::SystemInfo, "Process stopped by user"));
-            }
+            self.push_log(id, LogEntry::new(LogType::SystemInfo, "Process stopped by user"));
             Ok(())
         } else {
             self.statuses.insert(id.to_string(), AppStatus::Stopped);
@@ -166,6 +210,13 @@ impl DeploymentManager {
                         buf.push(e.clone());
                     }
                 }
+                if let Some(cfg) = self.deployments.get(id) {
+                    if cfg.persist_logs {
+                        if let Err(e) = self.log_db.insert_logs(id, &entries) {
+                            eprintln!("Failed to persist logs in SQLite for {}: {}", id, e);
+                        }
+                    }
+                }
                 new_logs.insert(id.clone(), entries);
             }
         }
@@ -201,12 +252,11 @@ impl DeploymentManager {
                 AppStatus::Error(format!("Exited with code {:?}", exit_code))
             };
 
-            if let Some(buf) = self.logs.get_mut(&id) {
-                buf.push(LogEntry::new(
-                    if status.success() { LogType::SystemInfo } else { LogType::SystemError },
-                    format!("Process exited with status: {}", status),
-                ));
-            }
+            let exit_entry = LogEntry::new(
+                if status.success() { LogType::SystemInfo } else { LogType::SystemError },
+                format!("Process exited with status: {}", status),
+            );
+            self.push_log(&id, exit_entry);
 
             // Check auto-restart if configured
             let should_restart = self
@@ -244,6 +294,7 @@ mod tests {
             command: "echo hello".to_string(),
             env_vars: HashMap::new(),
             auto_restart: false,
+            persist_logs: false,
             port: None,
             created_at: chrono::Local::now().to_rfc3339(),
         };
@@ -264,6 +315,48 @@ mod tests {
         // Delete
         assert!(manager.delete_deployment(&id).is_ok());
         assert!(manager.get_deployment(&id).is_none());
+    }
+
+    #[test]
+    fn test_manager_sqlite_log_persistence_and_deletion() {
+        let db = LogDatabase::in_memory().unwrap();
+        let temp_dir = std::env::temp_dir().join(format!("liveship_mgr_test_{}", uuid::Uuid::new_v4()));
+        let storage = Storage::with_path(temp_dir.join("deployments.json"));
+        let mut manager = DeploymentManager::with_storage_and_db(storage, db.clone());
+
+        let id = format!("test-sqlite-{}", uuid::Uuid::new_v4());
+        let config = DeploymentConfig {
+            id: id.clone(),
+            name: "SQLite Persist App".to_string(),
+            app_type: AppType::Custom,
+            work_dir: ".".to_string(),
+            command: "echo test".to_string(),
+            env_vars: HashMap::new(),
+            auto_restart: false,
+            persist_logs: true,
+            port: None,
+            created_at: chrono::Local::now().to_rfc3339(),
+        };
+
+        // Add deployment with persist_logs = true -> table created
+        assert!(manager.add_or_update(config).is_ok());
+        assert!(db.table_exists(&id));
+
+        // Manually push log entries through manager
+        manager.push_log(&id, LogEntry::new(LogType::Stdout, "Persisted stdout message"));
+        manager.push_log(&id, LogEntry::new(LogType::Stderr, "Persisted stderr warning"));
+
+        // Verify persisted in SQLite
+        let logs = db.fetch_recent_logs(&id, 10).unwrap();
+        assert_eq!(logs.len(), 2);
+        assert_eq!(logs[0].message, "Persisted stdout message");
+        assert_eq!(logs[1].message, "Persisted stderr warning");
+
+        // Delete deployment -> table is deleted
+        assert!(manager.delete_deployment(&id).is_ok());
+        assert!(!db.table_exists(&id));
+
+        let _ = std::fs::remove_dir_all(temp_dir);
     }
 }
 

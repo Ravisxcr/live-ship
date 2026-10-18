@@ -28,6 +28,16 @@ impl LogType {
             LogType::SystemError => "#EF4444",// red-500
         }
     }
+
+    pub fn from_str(s: &str) -> Self {
+        match s {
+            "STDOUT" => LogType::Stdout,
+            "STDERR" => LogType::Stderr,
+            "SYSTEM" => LogType::SystemInfo,
+            "SYS-ERR" => LogType::SystemError,
+            _ => LogType::Stdout,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

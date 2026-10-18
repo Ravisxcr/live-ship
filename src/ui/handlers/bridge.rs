@@ -71,6 +71,7 @@ impl UiBridge {
                     w.set_form_command(SharedString::from(AppType::FastApi.default_command()));
                     w.set_form_env_text(SharedString::from("PORT=8000\nPYTHONUNBUFFERED=1"));
                     w.set_form_auto_restart(false);
+                    w.set_form_persist_logs(false);
                 }
             });
         }
@@ -221,6 +222,7 @@ impl UiBridge {
                         w.set_form_command(SharedString::from(&config.command));
                         w.set_form_env_text(SharedString::from(format_env_string(&config.env_vars)));
                         w.set_form_auto_restart(config.auto_restart);
+                        w.set_form_persist_logs(config.persist_logs);
                         w.set_show_deployment_dialog(true);
                     }
                 }
@@ -231,7 +233,7 @@ impl UiBridge {
         {
             let w = window.as_weak();
             let mgr = manager.clone();
-            window.on_save_deployment(move |id, name, app_type_str, work_dir, command, env_text, auto_restart| {
+            window.on_save_deployment(move |id, name, app_type_str, work_dir, command, env_text, auto_restart, persist_logs| {
                 let id_str = if id.is_empty() {
                     uuid::Uuid::new_v4().to_string()
                 } else {
@@ -246,6 +248,7 @@ impl UiBridge {
                     command: command.to_string(),
                     env_vars: parse_env_string(&env_text),
                     auto_restart,
+                    persist_logs,
                     port: None,
                     created_at: chrono::Local::now().to_rfc3339(),
                 };

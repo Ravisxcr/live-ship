@@ -86,6 +86,7 @@ mod tests {
             command: "python app.py".to_string(),
             env_vars: std::collections::HashMap::new(),
             auto_restart: false,
+            persist_logs: false,
             port: Some(8000),
             created_at: "2026-10-18T00:00:00Z".to_string(),
         };

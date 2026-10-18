@@ -81,6 +81,8 @@ pub struct DeploymentConfig {
     pub command: String,
     pub env_vars: HashMap<String, String>,
     pub auto_restart: bool,
+    #[serde(default)]
+    pub persist_logs: bool,
     pub port: Option<u16>,
     pub created_at: String,
 }
@@ -95,6 +97,7 @@ impl Default for DeploymentConfig {
             command: "uvicorn main:app --reload".to_string(),
             env_vars: HashMap::new(),
             auto_restart: false,
+            persist_logs: false,
             port: Some(8000),
             created_at: String::new(),
         }

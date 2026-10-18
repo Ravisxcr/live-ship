@@ -8,9 +8,10 @@ export component DeploymentDialog inherits Rectangle {
     in-out property <string> form_command: "";
     in-out property <string> form_env_text: "";
     in-out property <bool> form_auto_restart: false;
+    in-out property <bool> form_persist_logs: false;
     in property <bool> is_new: true;
 
-    callback save(string, string, string, string, string, bool);
+    callback save(string, string, string, string, string, bool, bool);
     callback cancel();
     callback delete_deployment(string);
     callback select_app_type(string);
@@ -340,6 +341,80 @@ export component DeploymentDialog inherits Rectangle {
                             vertical-alignment: center;
                         }
                     }
+
+                    // SQLite Log Persistence Toggle Button
+                    Rectangle {
+                        height: 54px;
+                        border-radius: 8px;
+                        background: root.form_persist_logs ? #0F2744 : #0F172A;
+                        border-width: 1px;
+                        border-color: root.form_persist_logs ? #0284C7 : #1E293B;
+
+                        sqlite_touch := TouchArea {
+                            mouse-cursor: pointer;
+                            clicked => { root.form_persist_logs = !root.form_persist_logs; }
+                        }
+
+                        HorizontalLayout {
+                            padding-left: 14px;
+                            padding-right: 14px;
+                            alignment: space-between;
+
+                            // Left: Database Icon + Text descriptions
+                            HorizontalLayout {
+                                spacing: 12px;
+                                alignment: start;
+                                y: (parent.height - self.height) / 2;
+
+                                Image {
+                                    source: @image-url("../../../assets/icons/database.svg");
+                                    width: 18px;
+                                    height: 18px;
+                                    colorize: root.form_persist_logs ? #38BDF8 : #64748B;
+                                    y: (parent.height - self.height) / 2;
+                                }
+
+                                VerticalLayout {
+                                    spacing: 2px;
+                                    alignment: center;
+
+                                    Text {
+                                        text: "Persist logs in SQLite database";
+                                        font-size: 12px;
+                                        font-weight: 600;
+                                        color: root.form_persist_logs ? #F8FAFC : #CBD5E1;
+                                    }
+
+                                    Text {
+                                        text: "Creates a dedicated SQLite table for this deployment. When deleted, the table will be deleted.";
+                                        font-size: 11px;
+                                        color: root.form_persist_logs ? #93C5FD : #64748B;
+                                    }
+                                }
+                            }
+
+                            // Right: Modern Toggle Switch Button
+                            Rectangle {
+                                width: 44px;
+                                height: 24px;
+                                border-radius: 12px;
+                                background: root.form_persist_logs ? #0284C7 : #334155;
+                                border-width: 1px;
+                                border-color: root.form_persist_logs ? #38BDF8 : #475569;
+                                y: (parent.height - self.height) / 2;
+
+                                // Toggle thumb circle
+                                Rectangle {
+                                    width: 18px;
+                                    height: 18px;
+                                    border-radius: 9px;
+                                    background: #FFFFFF;
+                                    x: root.form_persist_logs ? (parent.width - self.width - 3px) : 3px;
+                                    y: (parent.height - self.height) / 2;
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -444,7 +519,8 @@ export component DeploymentDialog inherits Rectangle {
                                         root.form_type,
                                         root.form_work_dir,
                                         root.form_command,
-                                        root.form_auto_restart
+                                        root.form_auto_restart,
+                                        root.form_persist_logs
                                     );
                                 }
                             }

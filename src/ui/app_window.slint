@@ -32,6 +32,7 @@ export component MainWindow inherits Window {
     in-out property <string> form_command: "";
     in-out property <string> form_env_text: "";
     in-out property <bool> form_auto_restart: false;
+    in-out property <bool> form_persist_logs: false;
     in-out property <bool> form_is_new: true;
 
     // Callbacks to Rust backend
@@ -44,7 +45,7 @@ export component MainWindow inherits Window {
     callback restart_app(string);
     callback view_logs(string);
     callback edit_app(string);
-    callback save_deployment(string, string, string, string, string, string, bool);
+    callback save_deployment(string, string, string, string, string, string, bool, bool);
     callback delete_app(string);
     callback clear_logs_clicked(string);
     callback app_type_selected(string);
@@ -221,6 +222,7 @@ export component MainWindow inherits Window {
         form_command <=> root.form_command;
         form_env_text <=> root.form_env_text;
         form_auto_restart <=> root.form_auto_restart;
+        form_persist_logs <=> root.form_persist_logs;
         is_new: root.form_is_new;
 
         select_app_type(t) => {
@@ -232,8 +234,8 @@ export component MainWindow inherits Window {
             root.browse_work_dir();
         }
 
-        save(id, name, type_val, work_dir, command, auto_restart) => {
-            root.save_deployment(id, name, type_val, work_dir, command, root.form_env_text, auto_restart);
+        save(id, name, type_val, work_dir, command, auto_restart, persist_logs) => {
+            root.save_deployment(id, name, type_val, work_dir, command, root.form_env_text, auto_restart, persist_logs);
         }
 
         cancel => {
